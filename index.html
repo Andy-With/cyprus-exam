@@ -142,6 +142,8 @@ a.chip:hover { border-color: var(--copper); }
 .map-opts .opt { grid-template-columns: 1fr; justify-items: center; padding: 10px 6px; gap: 2px; }
 .map-opts .opt .l { min-height: 0; }
 .map-opts .big { font: 700 1.5rem var(--f-display); }
+.btn.small { padding: 6px 12px; font-size: .88rem; }
+.progress { align-self: center; font-size: .88rem; }
 .mode-hint { font-size: .85rem; color: var(--muted); padding: 8px 12px; border: 1px dashed var(--line); border-radius: 8px; }
 .mode { display: inline-flex; align-items: center; gap: 6px; font-size: .85rem; cursor: pointer; }
 .mode input { accent-color: var(--copper); width: 16px; height: 16px; }
@@ -447,8 +449,10 @@ const CY_MAP = {"w": 1000, "h": 614, "defs": "<defs><pattern id=\"occ\" width=\"
 
   function quiz() {
     const q = S.qs[S.i], a = S.ans[S.i], n = S.qs.length;
-    const peek = settings.study && a == null && S.peek[S.i];
-    const reveal = settings.study && (a != null || peek);
+    const peek = a == null && S.peek[S.i];
+    const reveal = (settings.study && a != null) || peek;
+    const done = k => S.ans[k] != null || S.peek[k];
+    const allDone = S.qs.every((_, k) => done(k));
     const ru = settings.ru || S.showRu[S.i];
     app.innerHTML = `
       <div class="bar">
@@ -474,9 +478,9 @@ const CY_MAP = {"w": 1000, "h": 614, "defs": "<defs><pattern id=\"occ\" width=\"
         ${q.clip ? `<audio class="qaudio" controls preload="none" src="${q.clip}" aria-label="Слушать вопрос"></audio>` : ''}
         <div class="qtools">
           ${!ru ? `<button class="link" id="tr">Показать перевод</button>` : ''}
-          ${settings.study && !reveal ? `<button class="link" id="peek">Показать ответ</button>` : ''}
+          ${!reveal ? `<button class="btn small" id="peek">Показать правильный ответ</button>` : ''}
         </div>
-        ${!reveal ? `<div class="mode-hint">${settings.study ? 'Учебный режим: выберите вариант — сразу покажем, верно ли, и объясним.' : 'Режим экзамена: ответы не подсвечиваются, результат — после кнопки «Ответить».'}</div>` : ''}
+        ${!reveal ? `<div class="mode-hint">${settings.study ? 'Учебный режим: выберите вариант — сразу покажем, верно ли, и объясним.' : 'Режим экзамена: ответы не подсвечиваются, результат откроется сам после последнего ответа.'}</div>` : ''}
         ${q.map ? mapSvg(q, reveal, a) : ''}
         <div class="opts ${q.map ? 'map-opts' : ''}">${q.opts.map((o, k) => {
           if (q.map) {
@@ -495,8 +499,8 @@ const CY_MAP = {"w": 1000, "h": 614, "defs": "<defs><pattern id=\"occ\" width=\"
       <div class="nav">
         <button class="btn" id="prev" ${S.i === 0 ? 'disabled' : ''}>← Назад</button>
         <span class="grow"></span>
-        ${S.i < n - 1 ? `<button class="btn" id="next">Дальше →</button>` : ''}
-        <button class="btn primary" id="fin">Ответить (${S.ans.filter(x => x != null).length}/${n})</button>
+        <span class="muted progress">Отвечено ${S.ans.filter(x => x != null).length} из ${n}</span>
+        ${allDone ? `<button class="btn primary" id="fin">Результат →</button>` : S.i < n - 1 ? `<button class="btn" id="next">Дальше →</button>` : `<button class="btn" id="next">К неотвеченному →</button>`}
       </div>`;
     updTimer();
     document.getElementById('back').onclick = () => { stopAudio(); home(); };
@@ -505,14 +509,17 @@ const CY_MAP = {"w": 1000, "h": 614, "defs": "<defs><pattern id=\"occ\" width=\"
     app.querySelectorAll('[data-go]').forEach(b => b.onclick = () => { S.i = +b.dataset.go; quiz(); });
     app.querySelectorAll('[data-o]').forEach(b => b.onclick = () => {
       S.ans[S.i] = q.opts[+b.dataset.o];
-      if (!settings.study && S.i < n - 1) S.i++;
+      const left = S.qs.map((_, k) => k).filter(k => S.ans[k] == null && !S.peek[k]);
+      if (!left.length && !settings.study) return finish();
+      if (!settings.study && left.length) S.i = left.find(k => k > S.i) ?? left[0];
       quiz();
     });
     app.querySelectorAll('[data-mode]').forEach(b => b.onclick = () => { settings.study = b.dataset.mode === 'study'; store.set('settings', settings); quiz(); });
     const pk = document.getElementById('peek'); if (pk) pk.onclick = () => { S.peek[S.i] = true; quiz(); };
+    const nextLeft = () => { const left = S.qs.map((_, k) => k).filter(k => !done(k)); return left.find(k => k > S.i) ?? left[0]; };
     document.getElementById('prev').onclick = () => { S.i--; quiz(); };
-    const nx = document.getElementById('next'); if (nx) nx.onclick = () => { S.i++; quiz(); };
-    document.getElementById('fin').onclick = finish;
+    const nx = document.getElementById('next'); if (nx) nx.onclick = () => { S.i = S.i < n - 1 ? S.i + 1 : nextLeft(); quiz(); };
+    const fb = document.getElementById('fin'); if (fb) fb.onclick = finish;
   }
 
   function finish() {
