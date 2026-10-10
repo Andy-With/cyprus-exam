@@ -69,7 +69,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--copper); ou
 a.chip { color: var(--copper); text-decoration: none; font-weight: 600; }
 a.chip:hover { border-color: var(--copper); }
 .chip.alert { background: var(--bad-soft); border-color: var(--bad); color: var(--bad); }
-.rules { font-size: .92rem; color: var(--muted); max-width: 62ch; }
+.rules { font-size: .92rem; color: var(--muted); margin: 0; }
 
 /* settings */
 .settings { display: flex; flex-wrap: wrap; gap: 8px 20px; padding: 12px 14px; border: 1px dashed var(--line); border-radius: 10px; margin-bottom: 18px; font-size: .93rem; }
@@ -185,7 +185,7 @@ a.chip:hover { border-color: var(--copper); }
 .tips .scroll { overflow-x: auto; }
 .tips a { color: var(--copper); }
 .gr { font-family: var(--f-display); font-weight: 500; }
-.foot { margin-top: 36px; font-size: .82rem; color: var(--muted); display: grid; gap: 6px; max-width: 65ch; }
+.foot { margin-top: 36px; padding-top: 16px; border-top: 1px solid var(--line); font-size: .82rem; color: var(--muted); display: grid; gap: 8px; }
 .foot a { color: var(--copper); }
 @media (max-width: 480px) { h1 { font-size: 1.55rem; } .qtext { font-size: 1.15rem; } .big { font-size: 2.5rem; } }
 @media (prefers-reduced-motion: no-preference) { .sheet { animation: in .18s ease-out; } @keyframes in { from { transform: translateY(4px); opacity: .6; } } }
@@ -341,7 +341,7 @@ const CY_MAP = {"w": 1000, "h": 614, "defs": "<defs><pattern id=\"occ\" width=\"
     };
     app.innerHTML = `
       <header class="head">
-        <div class="eyebrow">Εξέταση γνώσης της πραγματικότητας της Κύπρου</div>
+        <div class="eyebrow" lang="el">Εξέταση γνώσης της πραγματικότητας της Κύπρου</div>
         <h1>Тренажёр экзамена на знание Кипра</h1>
         <div class="dates">
           <a class="chip" href="https://enimerosi.moec.gov.cy/d1/ye" target="_blank" rel="noopener">Расписание и регистрация — на сайте Службы экзаменов</a>
